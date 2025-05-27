@@ -503,6 +503,12 @@ kubectl -f 08-hello-deployment-svc-nodePort.yaml
 
 (min 1:02:15)
 
+Vemos el archivo del manifiesto:
+
+```bash
+nano 09-hello-deployment-svc-loadBalancer.yaml  
+```
+
 Este servicio de `Digital Ocean` nos va a proporcionar una ip pública para acceder a los servicios.
 Minikube no tiene un provisionador de LoadBalancer real como los cloud providers.
 
@@ -536,14 +542,13 @@ kubectl apply -f 09-hello-deployment-svc-loadBalancer.yaml
 
 Comprobamos con:
 ```bash
+kubectl get all
 minikube service hello
 ```
 
 ![](images/image29.png)
 
-Este comando:
-
-Busca el servicio hello
+`minikube service hello`: Este comando busca el servicio hello, por lo que se nos muestra una ip y un puerto:
 
 Abre tu navegador con la IP y puerto correspondiente
 
@@ -551,31 +556,138 @@ Simula un "external IP"
 
 También puedes obtener solo la URL sin abrir el navegador:
 
-bash
-Copiar
-Editar
+bash```
 minikube service hello --url
-Vemos el archivo del manifiesto:
-
-```bash
-nano 09-hello-deployment-svc-loadBalancer.yaml  
 ```
--Lo ponemos en marcha y vemos información sobre `nodos` y `servicio`.
+Nos devuelve `http://192.168.58.2:30181/` (en mi caso).
+
+![](images/image30.png)
+
+- Podemos ver más información sobre `nodos` y `servicio`.
 
 ```bash
-kubectl apply -f 09-hello-deployment-svc-loadBalancer.yaml 
-kubectl get all
 kubectl get nodes -o wide
 kubectl get svc
 ```
-- Accedemos a las diferentes máquinas por el puerto 30000. ¡¡¡OJO¡¡¡ Deberás cambiar las ips por las tuyas¡¡¡
+Hagamos un curl también a la dirección del servicio:
+
 ```bash
-curl http://192.168.58.2:30000
-curl http://192.168.58.3:30000
-curl http://192.168.58.4:30000
+curl http://10.103.136.30:8080/
+curl http://10.103.136.30:8080/
+curl http://10.103.136.30:8080/
+curl http://10.103.136.30:8080/
+```
+Y vemos como está balanceando las peticiones.
+
+Paramos el deployment:
+- Interrumpimos el `minikube tunnel` con `ctrl+c` en el terminal donde se estuviera ejecutando  
+- Paramos deployment:
+
+```bash
+kubectl delete -f 09-hello-deployment-svc-loadBalancer.yaml 
 ```
 
-![](images/image27.png)
+## Ingress: Tráfico basado en rutas.
+
+ (min 1:09:50)
+
+La explicación sobre `ingress` la hace basado en los servicios de `Digital Ocean` nosotros vamos a realizarlo con `MiniKube`
+
+### Activar Ingress en Minikube
+
+Por defecto `ìngress` no viene en `minikube` pero lo podemos habilitar gracias a los plugins:
+
+```bash
+minikube addons enable ingress
+kubectl get pods -n ingress-nginx
+
+```
+![](images/image33.png)
+
+
+- En ingress también se utiliza internamente un `load balancer` por lo tanto tenemos que abrir nuevamente el tunnel de `MiniKube`
+
+```bash
+minikube tunnel
+```
+
+Recuerda no cerrar ese terminal para dejarlo en segundo plano.
+### Seguimos con los servicios
+
+- Vemos el manifiesto que contiene el donde crearemos dos servicios `v1` y `v2`
+
+```bash
+nano 10-hello-v1-v2-deployment-svc.yaml 
+```
+- Ejecutamos el `deployment` y comprobamos la creación de todos los elementos existentes:
+```bash
+kubectl apply -f 10-hello-v1-v2-deployment-svc.yaml 
+kubectl get all
+```
+Vemos que se han creado 6 contenedores y dos servicios, el `v1` y el `v2`.
+
+
+![](images/image32.png)
+
+- Vemos el manifiesto que contiene el `ingress`
+
+```bash
+nano 11-hello-ingress.yaml  
+```
+
+- Ejecutamos el `deployment` y comprobamos la creación de todos los elementos existentes:
+```bash
+kubectl apply -f 11-hello-ingress.yaml 
+kubectl get ingress
+```
+
+![](images/image33.png)
+
+Vemos que se ha creado el ingress `hello-app`
+
+Aquí no se nos va a mostrar la `ip externa`, pero la podemos obtener con:
+
+```bash
+minikube ip
+```
+
+![](images/image35.png)
+
+- Además en la captura podemos observar cómo dependiendo de si queremos ir a `v1` o `v2`, el `ingress` nos redirigirá a un nodo u otro
+```bash
+curl http://192.168.58.2/v2
+curl http://192.168.58.2/v1
+
+```
+Podemos ver información de los servicions `ingress` con 
+
+```bash
+kubectl -n ingress-nginx get svc
+```
+
+### Eliminamos nuestro deployment
+```bash
+kubectl delete -f 11-hello-ingress.yaml 
+kubectl delete -f 10-hello-v1-v2-deployment-svc.yaml 
+```
+
+
+## Configmap
+
+- Vemos el manifiesto de `configmap` y el de `pod` que vamos a usar:
+```bash
+nano 12-configmap.yaml 
+nano 13-pod-configmap.yaml
+```
+
+- Aplicamos los dos:
+
+```bash
+kubectl apply -f nano 12-configmap.yaml 
+kubectl apply -f 13-pod-configmap.yaml 
+```
+![](images/image22.png)
+
 - Elimiando el `deployment`
 
 ```bash
