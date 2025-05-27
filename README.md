@@ -673,100 +673,126 @@ kubectl delete -f 10-hello-v1-v2-deployment-svc.yaml
 
 
 ## Configmap
-
 - Vemos el manifiesto de `configmap` y el de `pod` que vamos a usar:
 ```bash
 nano 12-configmap.yaml 
 nano 13-pod-configmap.yaml
 ```
 
-- Aplicamos los dos:
+- Aplicamos los dos comprobamos los `pods`
 
 ```bash
-kubectl apply -f nano 12-configmap.yaml 
+kubectl apply -f 12-configmap.yaml 
 kubectl apply -f 13-pod-configmap.yaml 
+kubectl get pods
 ```
-![](images/image22.png)
+
+![](images/image36.png)
+
+- Nos conectamos al pod `nginx`
+
+```bash
+kubectl exec -it nginx -- sh
+```
+- Para ver la variables de entorno y ver como tenemos la variable
+
+```bash
+env
+ls /config
+cat /config/game.properties
+```
+![](images/image37.png)
+
+- Eliminamos el `deployment`:
+
+```bash
+kubectl delete -f 12-configmap.yaml 
+kubectl delete -f 13-pod-configmap.yaml 
+```
+
+---
+
+## Secrets-
+- Vemos el manifiesto de `configmap` y el de `pod` que vamos a usar:
+```bash
+nano 14-secret.yaml  
+nano 15-pod-secret.yaml 
+```
+
+- Aplicamos los dos comprobamos los `pods`
+
+```bash
+kubectl apply -f 14-secret.yaml 
+kubectl apply -f 15-pod-secret.yaml 
+
+kubectl get pods
+```
+
+
+- Nos conectamos al pod `nginx`
+
+```bash
+kubectl exec -it nginx -- sh
+```
+- Para ver la variables de entorno y ver como tenemos la variable
+
+```bash
+env
+```
+![](images/image38.png)
+
+Vemos como nos aparece la contraseña en claro
 
 - Elimiando el `deployment`
 
 ```bash
-kubectl -f 08-hello-deployment-svc-nodePort.yaml 
+kubectl delete -f 14-secret.yaml  
+kubectl delete -f 15-pod-secret.yaml 
 ```
 
-```bash
+---
 
-```
-![](images/image.png)
-```bash
+## Customization
 
-```
-![](images/image.png)
-```bash
+Para realizar esa `kustomización` tenemos que instalar `Kustomize` 
+Es una herramienta de gestión de configuración nativa de Kubernetes, que permite personalizar archivos YAML sin duplicarlos. Kubernetes la integra desde kubectl v1.14+, pero también puedes usarla como comando separado.
 
-```
-![](images/image.png)
-```bash
-
-```
-![](images/image.png)
-
- 
-
--
-(min 50:00)
+- Instalamos `kustomize`
 
 ```bash
-nano 05-statefulset.yaml
-kubectl get pods 
+snap install kustomize
 ```
 
-![](images/image.png)
-
+- Vemos el manifiesto de `configmap` y el de `pod` que vamos a usar:
 ```bash
+nano kustomization.yaml 
 ```
-![](images/image.png)
 
+- Creamos el `deployment`
 
 ```bash
+kustomize build . 
 ```
-![](images/image13.png)
 
-- Realiza también los apartados de Verificar la configuración y Plugins y configuraciones adiccionales.
+![](images/image39.png)
 
-- Instalamos Kind para crear los cluster :   https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager
-
+- Si queremos ejecutarlo y levantarlo:
 
 
 ```bash
+kustomize build . | kubectl apply -f -
+```
 
-``` 
-![](images/image.png)
-```bash
-
-``` 
-![](images/image.png)
-```bash
-
-``` 
-![](images/image.png)
-```bash
-
-``` 
-![](images/image.png)
-```bash
-
-``` 
-```bash
-
-``` 
-- Descarga el archivo config.yaml que tienes adjunto. Nos servirá para crear un cluster de 3 nodos.
-
+- Elimiando el `deployment`
 
 ```bash
+kubectl delete pods nginx
+```
 
-``` 
-
+---
+## Stern
+Puedes encontrar información en la página del desarrollador:
+<https://github.com/stern/stern>
 
 ## 🧽 Dejando todo "niquelao"
 
