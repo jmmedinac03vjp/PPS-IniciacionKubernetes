@@ -501,7 +501,7 @@ kubectl -f 08-hello-deployment-svc-nodePort.yaml
 
 ## Servicio loadbalancer
 
-(min 1:02:15)
+(min 1:07:30)
 
 Vemos el archivo del manifiesto:
 
@@ -673,6 +673,8 @@ kubectl delete -f 10-hello-v1-v2-deployment-svc.yaml
 
 
 ## Configmap
+
+(min 1:18:43)
 - Vemos el manifiesto de `configmap` y el de `pod` que vamos a usar:
 ```bash
 nano 12-configmap.yaml 
@@ -713,6 +715,8 @@ kubectl delete -f 13-pod-configmap.yaml
 ---
 
 ## Secrets-
+
+(min 1:21:40)
 - Vemos el manifiesto de `configmap` y el de `pod` que vamos a usar:
 ```bash
 nano 14-secret.yaml  
@@ -754,6 +758,7 @@ kubectl delete -f 15-pod-secret.yaml
 
 ## Customization
 
+(min 1:25:15)
 Para realizar esa `kustomización` tenemos que instalar `Kustomize` 
 Es una herramienta de gestión de configuración nativa de Kubernetes, que permite personalizar archivos YAML sin duplicarlos. Kubernetes la integra desde kubectl v1.14+, pero también puedes usarla como comando separado.
 
