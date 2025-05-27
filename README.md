@@ -85,6 +85,7 @@ kubectl -n kube-system get pods -o wide
 
 (min 24:30)
 - Borramos un pod, en este caso el pod `proxy`, OJO¡¡¡ que  el número no coincide, pon el que tengas en tu equipo:
+
 ```bash
 kubectl -n kube-system delete pod kube-proxy-4shz5 
 ``` 
@@ -96,7 +97,7 @@ Vemos como después de unos minutos volvemos a comprobar y se ha recreado un `po
 Nos cambiamos a la carpeta `kubernetes/35` donde tenemos diferentes archivos de configuraciones.
 
 
-```bash
+´´´bash
 cd kubernetes/35
 ```
 ![](images/image9.png)
@@ -231,7 +232,7 @@ En el tutorial ve los volumenes con el `Template` `StorageClass` de `Digital Oce
 
 ** Adaptación de StatefulSet para Minikube**
 
-Este documento explica cómo adaptar un `StatefulSet` de Kubernetes diseñado para DigitalOcean a un entorno local usando Minikube.
+Este punto explica cómo adaptar un `StatefulSet` de Kubernetes diseñado para DigitalOcean a un entorno local usando Minikube.
 
 El archivo original `05-statefulset.yaml` utiliza un `StorageClass` llamado `do-block-storage` que es exclusivo de DigitalOcean, y por tanto no está disponible en Minikube.
 
@@ -252,20 +253,34 @@ Deberías ver algo como:
 Si has intentado ejecutar el `05-statefulset.yaml` debes de borrar el `volumen creado`
 
 ```bash
-ubectl delete pvc csi-pvc-my-csi-app-set-0 
+kubectl delete pvc csi-pvc-my-csi-app-set-0 
 ```
 Minikube viene con un `StorageClass` por defecto llamado `standard`, por lo tanto debemos cambiar el `do-block-storage` por `standard`
 
 1. Cambiar el `Storage` en  `05-statefulset.yaml`. Utilizamos el comando de `bash` `sed`.
 
 ```bash
-sed -i 's/storageClassName: do-block-storage/storageClassName: standard/' 05-statefulset.yaml```
+sed -i 's/storageClassName: do-block-storage/storageClassName: standard/' 05-statefulset.yaml
+```
 
 2. Aplica el manifiesto:
 
 ```bash
 kubectl apply -f 05-statefulset.yaml
 ```
+
+- Vemos los datos del pod con `describe`
+
+```bash
+kubectl describe pod my-csi-app-set-0 
+```
+
+![](images/image19.png)
+
+ y vemos también los eventos de pod 
+
+![](images/image20.png)
+
 
 - Verificar el resultado
 
@@ -276,23 +291,153 @@ kubectl get pods
 kubectl get pvc
 kubectl get pv
 ```
-![](images/image17.png)
+![](images/image18.png)
+
+- verificar datos del ` pvc`
+
+```bash
+kubectl describe pvc csi-pvc-my-csi-app-set-0 
+```
+- Comprobamos estado de `statatefullset`
+
+```bash
+kubectl get sts
+```
+- borramos el `statefullset`
+```bash
+ kubectl delete sts  my-csi-app-set 
+```
+- Se ha borrado el `sts` pero no el volumen asociado. Comprobamos la existencia de pvc
+```bash
+kubectl get pvc
+```
+![](images/image21.png)
+
+- Ahora podemos Borrar el volumen creado y comprobar que se ha borrado
+```bash
+kubectl delete pvc csi-pvc-my-csi-app-set-0 
+kubectl get pvc
+```
+
+(min 55:45 )
+## Redes en Kubernetes
+
+- vemos `el randompod`
+```bash
+cat 06-randompod.yaml 
+```
+y lo ejecutamos:
+```bash
+kubectl apply -f 06-randompod.yaml  
+```
+
+- Vemos el `deployment` `07-hello-deployment-svc-clusterIP.yaml` 
+
+```bash
+nano 07-hello-deployment-svc-clusterIP.yaml 
+```
+- Ejecutamos el `deployment` y comprobamos la creación de todos los elementos existentes:
+
+```bash
+kubectl apply -f 07-hello-deployment-svc-clusterIP.yaml
+kubectl get all
+```
+![](images/image22.png)
+
+- Vemos información sobre el `service hello`
+
+```bash
+kubectl describe svc hello 
+```
+
+![](images/image23.png)
+
+
+- Como otras veces, podemos probar a matar uno de ellos y comprobar como se regenera. ¡¡¡OJO que debes de sustituir el hash por uno tuyo¡¡¡
+```bash
+kubectl delete pod hello-5c94bdb585-96w7h
+kubectl describe svc hello
+```
+Vemos como ha cambiado la ip de uno de ellos 
+
+**Comprobación de red**
+
+(min 1:00:03)
+- accedemos al pod ubuntu
+```bash
+kubectl exec -it ubuntu -- bash
+```
+- Instalamos `iputils-ping` y `curl`, ya que no están instalados:
+
+```bash
+apt update
+apt install iputils
+apt install curl
+```
+- Y realizamos un ping a uno de
+```bash
+ping hello
+```
+- Y hacemos un curl para descargar el contenido de la página de inicio de <http://hello:8080>
+```bash
+curl http://hello:8080
+```
+Vemos como si hacemos varias peticiones, nos responden diferentes máquinas:
+
+![](images/image24.png)
+
+
+-  Salimos del contenedor y ubuntu y borramos el `statefullset`
+```bash
+exit
+```
+```bash
+kubectl delete -f 07-hello-deployment-svc-clusterIP.yaml 
+```
+
+
+**Ejemplo Mod Port**
+(min 1:04:40)
+```bash
+
+```
+![](images/image.png)
+```bash
+
+```
+![](images/image.png)
+```bash
+
+```
+![](images/image.png)
+```bash
+
+```
+![](images/image.png)
+```bash
+
+```
+![](images/image.png)
+```bash
+
+```
+![](images/image.png)
+```bash
+
+```
+![](images/image.png)
 
  
 
-![](images/image16.png)
+-
+(min 50:00)
 
 ```bash
 nano 05-statefulset.yaml
 kubectl get pods 
 ```
-- 
-```bash
-kubectl get delete -f 05-statefulset.yaml
-```
--
-(min 46:00)
 
+![](images/image.png)
 
 ```bash
 ```
