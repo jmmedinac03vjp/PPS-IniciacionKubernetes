@@ -8,13 +8,14 @@ Sigue el vídeo del canal de Pelardo Nard sobre <https://youtu.be/DCoBcpOA7W4>
 
 ```bash
 git clone https://github.com/pablokbs/peladonerd.git
-``` 
+```
 
 - Comprueba si tienes kubectl instalado en tu equipo:
 
 ```bash
 kubectl version --client=true
-``` 
+```
+ 
 
 - Instala kubernetes kubectl (si no está instalado)
 
@@ -28,13 +29,11 @@ kubectl version --client=true
 ```bash
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
 sudo dpkg -i minikube_latest_amd64.deb
-``` 
-
+```
 - Iniciamos `MiniKube`
 ```bash
 minikube start
-``` 
-
+```
 ![](images/image1.png)
 
  Tendrás la siguiente estructura de archivos:
@@ -45,9 +44,74 @@ minikube start
 
 ```bash
 kubectl get nodes
-``` 
+```
+ 
 ![](images/image3.png)
 
+---
+
+## Instalar Cluster de 3 nodos con MiniKube
+
+En el video, `PedoNerd` utiliza un cluster con `Digital Ocean`. Nosotros vamos a intentar emularlo con `MiniKube`
+
+
+Minikube tradicionalmente corre un solo nodo, pero puedes lanzar múltiples nodos (en la misma máquina virtual) con:
+
+```bash
+minikube start --nodes 3 -p multinodo
+```
+
+Esto crea un clúster con:
+
+- 1 nodo de control (multinodo-m01)
+
+- 2 nodos workers (multinodo-m02, multinodo-m03)
+
+### 🔧 Paso a paso
+
+1. Iniciar un clúster de 3 nodos
+```bash
+minikube start --nodes 3 -p multinodo
+```
+
+📝 -p multinodo es el nombre del perfil (puedes elegir otro).
+
+2. Verifica los nodos
+```bash
+kubectl get nodes
+```
+Saldrá algo así:
+
+```pgsql
+NAME             STATUS   ROLES           AGE   VERSION
+multinodo-m01    Ready    control-plane   1m    v1.XX.X
+multinodo-m02    Ready    <none>          1m    v1.XX.X
+multinodo-m03    Ready    <none>          1m    v1.XX.X
+```
+
+![](images/image25.png)
+
+
+### Comprobación del perfil de Minikube
+
+Podemos tener diferentes perfiles de MiniKube pero sólo uno activo.
+
+-Para ver los perfiles que tenemos 
+```bash
+minikube profile list
+```
+
+- Para cambiar el perfil al multinodo que hemos creado:
+
+```bash
+minikube profile multinodo
+```
+
+Y ya debe de aparecer como activo.
+
+![](images/image28.png)
+
+## Uso de kubectl
 - Para ver la lista de acciones o comandos posibles:
 
 ```bash
@@ -163,9 +227,11 @@ kubectl get pods -o yaml
 kubectl delete pod nginx
 ```
 
-(min 40:40)
+---
 
-- **Deployment**
+## Deployment
+
+(min 40:40)
 
 vemos el archivo del `deployment`
 
@@ -200,9 +266,12 @@ kubectl get pods
 kubectl get delete -f 04-deployment.yaml.
 ```
 
+---
+
+## Daemon Set
+
 (min 43:00)
 
-- **Daemon Set**
 ```bash
 nano 03-daemonset.yaml
 kubectl apply -f 03-daemonset.yaml
@@ -224,9 +293,12 @@ kubectl get pods
 kubectl get delete -f 03-daemonset.yaml.
 ```
 -
-(min 46:00)
 
-**State Full Set**
+---
+
+## State Full Set
+
+(min 46:00)
 
 En el tutorial ve los volumenes con el `Template` `StorageClass` de `Digital Ocean` nosotros vamos a utilizar el `storageClass` `standard`.
 
@@ -318,9 +390,11 @@ kubectl get pvc
 kubectl delete pvc csi-pvc-my-csi-app-set-0 
 kubectl get pvc
 ```
+---
+
+##Servicio Cluster IP (Servicio por defecto)
 
 (min 55:45 )
-## Redes en Kubernetes
 
 - vemos `el randompod`
 ```bash
@@ -395,21 +469,119 @@ exit
 kubectl delete -f 07-hello-deployment-svc-clusterIP.yaml 
 ```
 
+---
 
-**Ejemplo Mod Port**
+## Servicio nodeport
 (min 1:04:40)
-```bash
 
-```
-![](images/image.png)
-```bash
+Vemos el archivo del manifiesto:
 
-```
-![](images/image.png)
 ```bash
-
+nano 08-hello-deployment-svc-nodePort.yaml 
 ```
-![](images/image.png)
+```bash
+kubectl apply -f 08-hello-deployment-svc-nodePort.yaml 
+kubectl get all
+kubectl get nodes -o wide
+```
+![](images/image26.png)
+- Accedemos a las diferentes máquinas por el puerto 30000. ¡¡¡OJO¡¡¡ Deberás cambiar las ips por las tuyas¡¡¡
+```bash
+curl http://192.168.58.2:30000
+curl http://192.168.58.3:30000
+curl http://192.168.58.4:30000
+```
+
+![](images/image27.png)
+- Elimiando el `deployment`
+
+```bash
+kubectl -f 08-hello-deployment-svc-nodePort.yaml 
+```
+
+## Servicio loadbalancer
+
+(min 1:02:15)
+
+Este servicio de `Digital Ocean` nos va a proporcionar una ip pública para acceder a los servicios.
+Minikube no tiene un provisionador de LoadBalancer real como los cloud providers.
+
+- Primero cambiamos el manifest:
+
+```bash
+sed -i '' 's/type: NodePort/type: LoadBalancer/' 09-hello-deployment-svc-loadBalancer.yaml
+```
+
+### ¿Cómo simular un LoadBalancer en Minikube?
+
+- Usar minikube service (la más sencilla)
+Minikube tiene una utilidad para exponer servicios NodePort fácilmente en el navegador o abrir un túnel:
+
+- Abrimos un tunnel de minikube
+
+```bash
+minikube tunnel
+```
+El comando minikube tunnel debe estar activo en segundo plano o en una terminal separada. No es instantáneo.
+
+- Si lo cierras, el EXTERNAL-IP volverá a <pending>.
+
+- Déjalo ejecutándose en una terminal. Deja esa terminal abierta y no interrumpas el proceso.
+
+
+- Ejecutamos el `deployment`
+```bash
+kubectl apply -f 09-hello-deployment-svc-loadBalancer.yaml 
+```
+
+Comprobamos con:
+```bash
+minikube service hello
+```
+
+![](images/image29.png)
+
+Este comando:
+
+Busca el servicio hello
+
+Abre tu navegador con la IP y puerto correspondiente
+
+Simula un "external IP"
+
+También puedes obtener solo la URL sin abrir el navegador:
+
+bash
+Copiar
+Editar
+minikube service hello --url
+Vemos el archivo del manifiesto:
+
+```bash
+nano 09-hello-deployment-svc-loadBalancer.yaml  
+```
+-Lo ponemos en marcha y vemos información sobre `nodos` y `servicio`.
+
+```bash
+kubectl apply -f 09-hello-deployment-svc-loadBalancer.yaml 
+kubectl get all
+kubectl get nodes -o wide
+kubectl get svc
+```
+- Accedemos a las diferentes máquinas por el puerto 30000. ¡¡¡OJO¡¡¡ Deberás cambiar las ips por las tuyas¡¡¡
+```bash
+curl http://192.168.58.2:30000
+curl http://192.168.58.3:30000
+curl http://192.168.58.4:30000
+```
+
+![](images/image27.png)
+- Elimiando el `deployment`
+
+```bash
+kubectl -f 08-hello-deployment-svc-nodePort.yaml 
+```
+
 ```bash
 
 ```
@@ -483,22 +655,13 @@ kubectl get pods
 
 ``` 
 
-- Crea el cluster con el comando: kind create cluster --config=config.yaml
 
+## 🧽 Dejando todo "niquelao"
+
+Para borrar el clúster luego:
 ```bash
-
-``` 
-
-- Iniciamos minikube: minikube start
-
-```bash
-
-``` 
-- Creamos cluster de kubernetes con minikube: https://k8s-docs.netlify.app/en/docs/setup/learning-environment/minikube/ (Si tienes problemas para crear el cluster con minikube, puedes utilizar Kind:
-
-```bash
-
-``` 
+minikube delete -p multinodo
+```
 ![](images/image.png)
 ![](images/image.png)
 ![](images/image.png)
