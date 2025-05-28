@@ -4,10 +4,12 @@ Siguiendo el vídeo de Pelardo Nard sobre KUBERNETES De NOVATO a PRO!   https://
 
 Sigue el vídeo del canal de Pelardo Nard sobre <https://youtu.be/DCoBcpOA7W4>
 
-- Si quieres, puedes clonar el repositorio de peladonerd para poder ver archivos de configuración: 
+- Si quieres, puedes clonar el repositorio de peladonerd para poder ver archivos de configuración qué están en la carpeta `kubernetes/35`. 
 
 ```bash
 git clone https://github.com/pablokbs/peladonerd.git
+cd  peladonerd/kubernetes/35/
+
 ```
 
 - Comprueba si tienes kubectl instalado en tu equipo:
