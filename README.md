@@ -441,7 +441,7 @@ Vemos como ha cambiado la ip de uno de ellos
 (min 1:00:03)
 - accedemos al pod ubuntu
 ```bash
-kubectl exec -it ubuntu -- bash
+kubectl exec -it ubuntu -- sh
 ```
 - Instalamos `iputils-ping` y `curl`, ya que no están instalados:
 
